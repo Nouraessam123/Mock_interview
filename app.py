@@ -8,7 +8,7 @@ import re
 
 # Load environment variables
 load_dotenv()
-openai.api_key =os.environ.get("OPENAI_API_KEY")
+openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -28,13 +28,13 @@ def generate_questions():
     )
 
     try:
-        response = openai.ChatCompletion.create(
+        response = openai.Completion.create(
             model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
+            prompt=prompt,
             temperature=1.0,
             max_tokens=1000,
         )
-        content = response.choices[0].message.content.strip()
+        content = response.choices[0].text.strip()
         lines = content.split("\n")
         questions = [line.strip() for line in lines if line.strip() and "?" in line]
         return jsonify({"questions": questions})
@@ -59,13 +59,13 @@ def evaluate_answer():
     )
 
     try:
-        feedback_response = openai.ChatCompletion.create(
+        feedback_response = openai.Completion.create(
             model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": feedback_prompt}],
+            prompt=feedback_prompt,
             temperature=0.7,
             max_tokens=500,
         )
-        feedback_text = feedback_response.choices[0].message.content.strip()
+        feedback_text = feedback_response.choices[0].text.strip()
 
         # Extract rating
         rating = None
@@ -91,7 +91,5 @@ def evaluate_answer():
 def home():
     return "API is running. Use /generate_questions or /evaluate_answer"
 
-
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
-
