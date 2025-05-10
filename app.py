@@ -8,7 +8,7 @@ import re
 
 # Load environment variables
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai_api_key = os.environ.get("OPENAI_API_KEY")
 
 # Initialize Flask app
 app = Flask(__name__)
