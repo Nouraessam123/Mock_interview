@@ -28,13 +28,14 @@ def generate_questions():
     )
 
     try:
-        response = openai.Completion.create(
+        # Change to use ChatCompletion
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            prompt=prompt,
+            messages=[{"role": "user", "content": prompt}],
             temperature=1.0,
             max_tokens=1000,
         )
-        content = response.choices[0].text.strip()
+        content = response.choices[0].message['content'].strip()
         lines = content.split("\n")
         questions = [line.strip() for line in lines if line.strip() and "?" in line]
         return jsonify({"questions": questions})
@@ -59,13 +60,14 @@ def evaluate_answer():
     )
 
     try:
-        feedback_response = openai.Completion.create(
+        # Change to use ChatCompletion
+        feedback_response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            prompt=feedback_prompt,
+            messages=[{"role": "user", "content": feedback_prompt}],
             temperature=0.7,
             max_tokens=500,
         )
-        feedback_text = feedback_response.choices[0].text.strip()
+        feedback_text = feedback_response.choices[0].message['content'].strip()
 
         # Extract rating
         rating = None
