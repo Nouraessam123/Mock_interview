@@ -3,6 +3,5 @@ flask-cors
 openai
 vaderSentiment
 python-dotenv
-gunicorn
 
 
