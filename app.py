@@ -27,20 +27,17 @@ def generate_questions():
         "Please list only the questions, numbered."
     )
 
-    try:
-        # Change to use ChatCompletion
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=1.0,
-            max_tokens=1000,
-        )
-        content = response.choices[0].message['content'].strip()
-        lines = content.split("\n")
-        questions = [line.strip() for line in lines if line.strip() and "?" in line]
-        return jsonify({"questions": questions})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    # إرسال الطلب إلى API البعيد (Vercel)
+    response = requests.post(
+        "https://mock-interview-omega-three.vercel.app/generate_questions", 
+        json={"job_role": job_role}
+    )
+
+    if response.status_code == 200:
+        return jsonify(response.json())  # إرجاع البيانات المستلمة من الـ API البعيد
+    else:
+        return jsonify({"error": "Failed to get questions from external API"}), 500
+
 
 @app.route("/evaluate_answer", methods=["POST"])
 def evaluate_answer():
@@ -50,44 +47,16 @@ def evaluate_answer():
 
     sentiment = analyzer.polarity_scores(answer)
 
-    feedback_prompt = (
-        f"Evaluate how well the following answer responds to the interview question "
-        f"in terms of relevance, completeness, and clarity.\n\n"
-        f"Question: {question}\n"
-        f"Answer: {answer}\n\n"
-        f"Provide detailed feedback, then add a score out of 10 using this format:\n"
-        f"Rating: X/10"
+    # إرسال الطلب إلى API البعيد (Vercel)
+    response = requests.post(
+        "https://mock-interview-omega-three.vercel.app/evaluate_answer",
+        json={"question": question, "answer": answer}
     )
 
-    try:
-        # Change to use ChatCompletion
-        feedback_response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": feedback_prompt}],
-            temperature=0.7,
-            max_tokens=500,
-        )
-        feedback_text = feedback_response.choices[0].message['content'].strip()
-
-        # Extract rating
-        rating = None
-        if "Rating:" in feedback_text:
-            rating_line = [line for line in feedback_text.split('\n') if "Rating:" in line]
-            if rating_line:
-                match = re.search(r'\d+', rating_line[0])
-                if match:
-                    extracted = int(match.group())
-                    if 0 <= extracted <= 10:
-                        rating = extracted
-
-        return jsonify({
-            "feedback": feedback_text,
-            "rating": rating,
-            "sentiment": sentiment
-        })
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    if response.status_code == 200:
+        return jsonify(response.json())  # إرجاع البيانات المستلمة من الـ API البعيد
+    else:
+        return jsonify({"error": "Failed to evaluate answer from external API"}), 500
 
 @app.route("/")
 def home():
